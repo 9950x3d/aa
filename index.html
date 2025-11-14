@@ -1,50 +1,2097 @@
 <!DOCTYPE html>
+
 <html lang="ko">
+
+
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .container {
-            text-align: center;
-            padding: 40px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-        }
-        h1 {
-            margin: 0;
-            font-size: 3em;
-            margin-bottom: 20px;
-        }
-        p {
-            font-size: 1.2em;
-            margin: 10px 0;
-        }
-        .emoji {
-            font-size: 4em;
-            margin: 20px 0;
-        }
-    </style>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>쌓기나무 문제 풀기 게임</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+
+body {
+
+font-family: 'Noto Sans KR', sans-serif;
+
+transition: background-color 0.5s ease-in-out;
+
+}
+
+
+
+/* 난이도별 배경색 */
+
+.bg-easy {
+
+background-color: #e6f7ff;
+
+}
+
+
+
+.bg-normal {
+
+background-color: #f6ffed;
+
+}
+
+
+
+.bg-hard {
+
+background-color: #fff1f0;
+
+}
+
+
+
+/* 화면 전환 효과 */
+
+.screen {
+
+transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+
+}
+
+
+
+.screen.hidden {
+
+opacity: 0;
+
+transform: scale(0.95);
+
+pointer-events: none;
+
+position: absolute;
+
+}
+
+#draw-canvas {
+
+position: absolute;
+
+top: 0;
+
+left: 0;
+
+width: 100%;
+
+height: 100%;
+
+cursor: crosshair;
+
+pointer-events: none;
+
+z-index: 5;
+
+touch-action: none;
+
+}
+
+
+
+#game-screen {
+
+position: relative;
+
+}
+
+
+
+.tool-active {
+
+box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+
+}
+
+
+
+#draw-canvas.eraser-cursor {
+
+cursor: none;
+
+}
+
+
+
+#eraser-indicator {
+
+position: fixed; /* ✨ absolute → fixed */
+
+border: 3px solid #ff6b6b;
+
+border-radius: 50%;
+
+pointer-events: none;
+
+display: none;
+
+z-index: 9999;
+
+background-color: rgba(255, 107, 107, 0.2);
+
+transform: translate(-50%, -50%); /* ✨ 중앙 정렬 */
+
+}
+
+
+
+/* ✨ 버튼이 있는 모든 요소 */
+
+#game-screen button,
+
+#game-screen input,
+
+#game-screen h2,
+
+#game-screen h3,
+
+#game-screen p {
+
+position: relative;
+
+z-index: 10;
+
+}
+
+</style>
+
 </head>
-<body>
-    <div class="container">
-        <div class="emoji">🚀</div>
-        <h1>Welcome!</h1>
-        <p>This is a simple HTML page</p>
-        <p>Created with GitHub</p>
-    </div>
+
+
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+<div class="container mx-auto p-4 max-w-4xl w-full">
+
+
+
+<!-- 시작 화면 -->
+
+<div id="start-screen" class="screen bg-white p-8 rounded-2xl shadow-lg text-center">
+
+<h1 class="text-4xl font-bold mb-4 text-gray-800">쌓기나무 문제 풀기 게임</h1>
+
+<div class="text-left max-w-2xl mx-auto bg-gray-50 p-6 rounded-lg">
+
+<h2 class="text-2xl font-bold mb-4 text-center text-indigo-600">📜 게임 규칙</h2>
+
+<ul class="list-decimal list-inside space-y-3 text-gray-700">
+
+<li><span class="font-bold">'게임 시작'</span> 버튼을 누르면 쌓기나무의 <span
+
+class="text-blue-500 font-semibold">앞, 오른쪽, 위</span>에서 본 모습이 나옵니다. 동시에 초시계가 시작돼요.</li>
+
+<li>문제를 보고 실제 쌓기나무로 모양을 만들어 보세요. (선택 사항)<br>
+
+<a href="https://www.algeomath.kr/kids/algeomath/poly/make.do" target="_blank"
+
+class="text-blue-600 hover:text-blue-800 underline text-sm">
+
+🔗 알지오매스에서 입체도형 만들기
+
+</a>
+
+</li>
+
+<li>모양을 알아냈다면, 필요한 <span class="font-bold text-red-500">쌓기나무의 총 개수</span>를 입력해 주세요.</li>
+
+<li>개수를 입력하고 '정답 확인' 버튼을 누르면 시간이 멈추고, <span class="font-bold text-green-600">가능한 범위</span>와 점수가
+
+공개됩니다.</li>
+
+<li>점수는 <span class="font-bold">100점</span>에서 시작해서, <span class="font-bold">2초마다 1점</span>씩 줄어들어요.
+
+</li>
+
+<li>문제는 총 <span class="font-bold">10문제</span>가 난이도별로 나옵니다.</li>
+
+</ul>
+
+</div>
+
+<div class="mt-8">
+
+<h3 class="text-2xl font-bold mb-4 text-gray-800">난이도를 선택하세요</h3>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
+
+<button data-difficulty="easy"
+
+class="difficulty-btn bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-lg text-lg transition-transform transform hover:scale-105">
+
+😊 쉬움<br>
+
+<span class="text-sm">(3×3 크기)</span>
+
+</button>
+
+<button data-difficulty="normal"
+
+class="difficulty-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-6 rounded-lg text-lg transition-transform transform hover:scale-105">
+
+🤔 중간<br>
+
+<span class="text-sm">(4×4 크기)</span>
+
+</button>
+
+<button data-difficulty="hard"
+
+class="difficulty-btn bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-6 rounded-lg text-lg transition-transform transform hover:scale-105">
+
+😤 어려움<br>
+
+<span class="text-sm">(5×5 크기)</span>
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- 로딩 화면 -->
+
+<div id="loading-screen" class="screen hidden bg-white p-8 rounded-2xl shadow-lg text-center">
+
+<div class="flex flex-col items-center justify-center min-h-[400px]">
+
+<div class="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mb-6"></div>
+
+<h2 class="text-3xl font-bold text-gray-800 mb-2">문제를 만들고 있습니다...</h2>
+
+<p class="text-gray-600">최소/최대 개수를 계산 중입니다</p>
+
+</div>
+
+</div>
+
+
+
+<!-- 게임 화면 -->
+
+<div id="game-screen" class="screen hidden bg-white p-8 rounded-2xl shadow-lg">
+
+<canvas id="draw-canvas"></canvas>
+
+ <div id="eraser-indicator"></div> 
+
+<div class="flex justify-between items-center mb-6">
+
+<div class="flex items-center gap-4">
+
+<button id="home-btn"
+
+class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">🏠
+
+홈</button>
+
+<h2 id="question-counter" class="text-2xl font-bold text-gray-700">문제 1 / 10</h2>
+
+<div class="flex gap-2 ml-4">
+
+<button id="draw-btn"
+
+class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-lg text-sm">
+
+🖊️ 쓰기
+
+</button>
+
+<button id="draw-off-btn"
+
+class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-3 rounded-lg text-sm tool-active">
+
+❌ 끄기
+
+</button>
+
+<button id="erase-btn"
+
+class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-3 rounded-lg text-sm">
+
+✏️ 지우개
+
+</button>
+
+<button id="clear-btn"
+
+class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-lg text-sm">
+
+🗑️ 초기화
+
+</button>
+
+</div></div>
+
+<div class="text-right">
+
+<p class="text-lg text-gray-500">걸린 시간</p>
+
+<p id="timer" class="text-3xl font-bold text-red-500">0초</p>
+
+</div>
+
+</div>
+
+
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+
+<div class="bg-gray-50 p-4 rounded-lg">
+
+<h3 class="text-xl font-bold mb-3 text-blue-600">[ 위에서 본 모양 ]</h3>
+
+<div id="top-view" class="grid gap-1 max-w-xs mx-auto aspect-square border-2 rounded"></div>
+
+</div>
+
+<div class="bg-gray-50 p-4 rounded-lg">
+
+<h3 class="text-xl font-bold mb-3 text-green-600">[ 앞에서 본 모양 ]</h3>
+
+<div id="front-view" class="grid gap-1 max-w-xs mx-auto aspect-square border-2 rounded"></div>
+
+</div>
+
+<div class="bg-gray-50 p-4 rounded-lg">
+
+<h3 class="text-xl font-bold mb-3 text-purple-600">[ 오른쪽에서 본 모양 ]</h3>
+
+<div id="side-view" class="grid gap-1 max-w-xs mx-auto aspect-square border-2 rounded"></div>
+
+</div>
+
+</div>
+
+
+
+<div class="mt-8 text-center">
+
+<p class="text-xl mb-3 font-semibold text-gray-800">쌓기나무는 총 몇 개일까요?</p>
+
+<input id="answer-input" type="number"
+
+class="text-2xl text-center w-48 p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+
+placeholder="개수 입력">
+
+<button id="submit-btn"
+
+class="ml-4 bg-green-500 text-white font-bold py-3 px-8 rounded-lg text-xl hover:bg-green-600 transition-transform transform hover:scale-105">정답
+
+확인</button>
+
+<button id="next-question-in-game-btn"
+
+class="ml-4 bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg text-xl hover:bg-indigo-700 transition-transform transform hover:scale-105 hidden">다음
+
+문제</button>
+
+</div>
+
+</div>
+
+
+
+<!-- 결과 화면 -->
+
+<div id="result-screen" class="screen hidden bg-white p-8 rounded-2xl shadow-lg text-center">
+
+<div class="flex justify-between items-center mb-4">
+
+<button id="home-btn-result"
+
+class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">🏠
+
+홈</button>
+
+<h2 id="result-title" class="text-4xl font-bold">정답입니다!</h2>
+
+<button id="back-to-question-btn"
+
+class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">📝
+
+문제 보기</button>
+
+</div>
+
+
+
+<div class="max-w-2xl mx-auto space-y-6">
+
+<div class="grid grid-cols-2 gap-4">
+
+<div class="bg-gray-50 p-4 rounded-lg">
+
+<p class="text-gray-600">걸린 시간</p>
+
+<p id="result-time" class="font-bold text-2xl text-red-500"></p>
+
+</div>
+
+<div class="bg-gray-50 p-4 rounded-lg">
+
+<p class="text-gray-600">획득 점수</p>
+
+<p id="result-score" class="font-bold text-2xl text-indigo-600"></p>
+
+</div>
+
+</div>
+
+
+
+<div class="bg-blue-50 border-2 border-blue-400 p-6 rounded-lg">
+
+<p class="text-gray-600 mb-2">나의 답</p>
+
+<p id="my-answer" class="font-bold text-3xl text-blue-700 mb-4"></p>
+
+</div>
+
+
+
+<div class="bg-green-100 border-2 border-green-400 p-6 rounded-lg">
+
+<p class="text-gray-600 mb-2">가능한 범위</p>
+
+<p id="correct-range" class="font-bold text-3xl text-green-700"></p>
+
+<p id="range-explanation" class="text-sm text-gray-600 mt-2"></p>
+
+</div>
+
+</div>
+
+
+
+<button id="next-btn"
+
+class="mt-8 bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg text-xl hover:bg-indigo-700 transition-transform transform hover:scale-105">다음
+
+문제</button>
+
+</div>
+
+
+
+<!-- 최종 점수 화면 -->
+
+<div id="final-screen" class="screen hidden bg-white p-8 rounded-2xl shadow-lg text-center">
+
+<h2 class="text-4xl font-bold mb-4 text-gray-800">🎉 게임 종료!</h2>
+
+<p class="text-xl text-gray-600 mb-6">모든 문제를 푸셨습니다. 수고하셨습니다!</p>
+
+<div class="bg-indigo-50 p-6 rounded-lg max-w-sm mx-auto">
+
+<p class="text-lg text-indigo-800">나의 최종 점수</p>
+
+<p id="final-score" class="text-6xl font-bold text-indigo-600 my-4"></p>
+
+</div>
+
+<button id="restart-btn"
+
+class="mt-8 bg-green-500 text-white font-bold py-3 px-8 rounded-lg text-xl hover:bg-green-600 transition-transform transform hover:scale-105">다시하기</button>
+
+</div>
+
+
+
+</div>
+
+
+
+<script>
+
+// DOM 요소
+
+const screens = {
+
+start: document.getElementById('start-screen'),
+
+loading: document.getElementById('loading-screen'),
+
+game: document.getElementById('game-screen'),
+
+result: document.getElementById('result-screen'),
+
+final: document.getElementById('final-screen')
+
+};
+
+
+
+const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+
+const questionCounter = document.getElementById('question-counter');
+
+const timerEl = document.getElementById('timer');
+
+const answerInput = document.getElementById('answer-input');
+
+const submitBtn = document.getElementById('submit-btn');
+
+const nextBtn = document.getElementById('next-btn');
+
+const restartBtn = document.getElementById('restart-btn');
+
+const homeBtns = [document.getElementById('home-btn'), document.getElementById('home-btn-result')];
+
+const backToQuestionBtn = document.getElementById('back-to-question-btn');
+
+const nextQuestionInGameBtn = document.getElementById('next-question-in-game-btn');
+
+
+
+const viewContainers = {
+
+top: document.getElementById('top-view'),
+
+front: document.getElementById('front-view'),
+
+side: document.getElementById('side-view')
+
+};
+
+
+
+const resultEls = {
+
+title: document.getElementById('result-title'),
+
+time: document.getElementById('result-time'),
+
+score: document.getElementById('result-score'),
+
+myAnswer: document.getElementById('my-answer'),
+
+correctRange: document.getElementById('correct-range'),
+
+rangeExplanation: document.getElementById('range-explanation')
+
+};
+
+const finalScoreEl = document.getElementById('final-score');
+
+
+
+// 게임 상태
+
+let currentProblemIndex = 0;
+
+let shuffledProblems = [];
+
+let totalScore = 0;
+
+let timerInterval;
+
+let seconds = 0;
+
+let currentDifficulty = 'normal';
+
+let isSubmitted = false; // 제출 여부 추적
+
+
+
+let isDrawing = false;
+
+let drawMode = 'draw';
+
+let canvas, ctx;
+
+
+
+function switchScreen(screenName) {
+
+Object.values(screens).forEach(screen => {
+
+if (screen.id.replace('-screen', '') !== screenName) {
+
+screen.classList.add('hidden');
+
+}
+
+});
+
+if (screens[screenName]) {
+
+screens[screenName].classList.remove('hidden');
+
+}
+
+}
+
+
+
+// 난이도별 문제 생성 (일관성 검증 강화)
+
+function generateProblemByDifficulty(difficulty) {
+
+let size, maxHeight, density;
+
+
+
+switch (difficulty) {
+
+case 'easy':
+
+size = 3;
+
+maxHeight = 3;
+
+density = 0.6;
+
+break;
+
+case 'normal':
+
+size = 4;
+
+maxHeight = 4;
+
+density = 0.5;
+
+break;
+
+case 'hard':
+
+size = 5;
+
+maxHeight = 5;
+
+density = 0.4;
+
+break;
+
+}
+
+
+
+let attempts = 0;
+
+while (attempts < 50) {
+
+attempts++;
+
+
+
+// 1. topView 생성
+
+const topView = Array(size).fill(0).map(() => Array(size).fill(0));
+
+for (let r = 0; r < size; r++) {
+
+for (let c = 0; c < size; c++) {
+
+if (Math.random() < density) {
+
+topView[r][c] = 1;
+
+}
+
+}
+
+}
+
+
+
+const hasBlock = topView.some(row => row.some(cell => cell === 1));
+
+if (!hasBlock) continue;
+
+
+
+const blockCount = topView.flat().filter(cell => cell === 1).length;
+
+const maxAllowed = Math.floor(size * size * 0.75); // 전체의 75%까지만 허용
+
+if (blockCount > maxAllowed) continue;
+
+
+
+// 2. frontView 생성
+
+const frontView = Array(size).fill(0);
+
+for (let c = 0; c < size; c++) {
+
+let hasBlockInCol = false;
+
+for (let r = 0; r < size; r++) {
+
+if (topView[r][c] === 1) {
+
+hasBlockInCol = true;
+
+break;
+
+}
+
+}
+
+if (hasBlockInCol) {
+
+frontView[c] = Math.floor(Math.random() * maxHeight) + 1;
+
+}
+
+}
+
+
+
+// 3. 가능한 sideView들 찾기
+
+const possibleResults = findAllPossibleSideViews(topView, frontView);
+
+
+
+if (possibleResults.length === 0) continue;
+
+
+
+// 4. 랜덤하게 하나 선택
+
+const selected = possibleResults[Math.floor(Math.random() * possibleResults.length)];
+
+
+
+// 5. 최소/최대값이 적당한지 체크 (너무 단순한 문제 제외)
+
+if (selected.maxBlocks - selected.minBlocks >= 0) {
+
+return {
+
+topView: topView,
+
+frontView: frontView,
+
+sideView: selected.sideView,
+
+minBlocks: selected.minBlocks,
+
+maxBlocks: selected.maxBlocks
+
+};
+
+}
+
+}
+
+
+
+// 실패 시 기본 문제
+
+const topView = Array(size).fill(0).map(() => Array(size).fill(0));
+
+topView[0][0] = 1;
+
+const frontView = Array(size).fill(0);
+
+frontView[0] = 1;
+
+const sideView = Array(size).fill(0);
+
+sideView[0] = 1;
+
+return { topView, frontView, sideView, minBlocks: 1, maxBlocks: 1 };
+
+}
+
+
+
+// 최대값 계산 (정확함)
+
+function calculateMaxBlocks(topView, frontView, sideView) {
+
+const size = topView.length;
+
+let total = 0;
+
+
+
+for (let r = 0; r < size; r++) {
+
+for (let c = 0; c < size; c++) {
+
+if (topView[r][c] === 1) {
+
+total += Math.min(frontView[c], sideView[r]);
+
+}
+
+}
+
+}
+
+return total;
+
+}
+
+
+
+function findAllPossibleSideViews(topView, frontView) {
+
+const size = topView.length;
+
+const possibleConfigs = [];
+
+
+
+// topView의 각 행/열에 블록이 있는지 미리 계산하여 캐싱
+
+// 이 정보는 sideView, frontView가 0이 되어야 하는지 판단하는 데 사용됨
+
+const topViewHasBlockInRow = Array(size).fill(false);
+
+const topViewHasBlockInCol = Array(size).fill(false);
+
+for (let r = 0; r < size; r++) {
+
+for (let c = 0; c < size; c++) {
+
+if (topView[r][c] === 1) {
+
+topViewHasBlockInRow[r] = true;
+
+topViewHasBlockInCol[c] = true;
+
+}
+
+}
+
+}
+
+
+
+function backtrack(r, c, grid) {
+
+if (r === size) {
+
+// 모든 셀을 채웠을 때 최종 유효성 검사
+
+
+
+// 1. frontView 조건 만족 여부 검사 (기존 로직)
+
+let frontViewSatisfied = true;
+
+for (let col = 0; col < size; col++) {
+
+let colMax = 0;
+
+for (let row = 0; row < size; row++) {
+
+colMax = Math.max(colMax, grid[row][col]);
+
+}
+
+if (colMax !== frontView[col]) {
+
+frontViewSatisfied = false;
+
+break;
+
+}
+
+}
+
+
+
+if (frontViewSatisfied) {
+
+// frontView 조건을 만족하면 sideView를 계산
+
+const calculatedSideView = [];
+
+for (let row = 0; row < size; row++) {
+
+let rowMax = 0;
+
+for (let col = 0; col < size; col++) {
+
+rowMax = Math.max(rowMax, grid[row][col]);
+
+}
+
+calculatedSideView[row] = rowMax;
+
+}
+
+
+
+// 2. topView와 frontView, calculatedSideView 간의 추가 일관성 검사
+
+let allViewsConsistent = true;
+
+
+
+// 2-1. topView에서 블록이 없는 행의 calculatedSideView 높이가 0이 아닌 경우 (질문자님 문제 케이스)
+
+// topViewHasBlockInRow를 사용하여 효율적으로 검사
+
+for (let row = 0; row < size; row++) {
+
+if (!topViewHasBlockInRow[row] && calculatedSideView[row] !== 0) {
+
+allViewsConsistent = false;
+
+break;
+
+}
+
+}
+
+if (!allViewsConsistent) {
+
+return; // 모순이므로 이 배치는 유효하지 않음
+
+}
+
+
+
+// 2-2. topView에서 블록이 없는 열의 frontView 높이가 0이 아닌 경우
+
+// (이 부분은 frontViewSatisfied 검사 이전에 이미 걸러지거나, frontView 생성 시 이미 고려되어야 함)
+
+// 하지만 방어적으로 다시 한번 검사 (여기서는 frontView가 고정된 입력값이므로, 이 검사가 실패하면
+
+// 애초에 topView와 frontView 입력 자체가 모순된다는 의미)
+
+for (let col = 0; col < size; col++) {
+
+if (!topViewHasBlockInCol[col] && frontView[col] !== 0) {
+
+allViewsConsistent = false;
+
+break;
+
+}
+
+}
+
+if (!allViewsConsistent) {
+
+return; // 모순이므로 이 배치는 유효하지 않음
+
+}
+
+
+
+// 모든 검사를 통과한 경우에만 possibleConfigs에 추가
+
+let total = 0;
+
+for (let row = 0; row < size; row++) {
+
+for (let col = 0; col < size; col++) {
+
+total += grid[row][col];
+
+}
+
+}
+
+
+
+// 로그 추가: 각 유효한 배치 출력
+
+// console.log('유효한 배치:', JSON.stringify(grid), 'sideView:', calculatedSideView, 'total:', total);
+
+
+
+possibleConfigs.push({
+
+sideView: calculatedSideView,
+
+total: total
+
+});
+
+}
+
+return;
+
+}
+
+
+
+const nextC = (c + 1) % size;
+
+const nextR = nextC === 0 ? r + 1 : r;
+
+
+
+if (topView[r][c] === 0) {
+
+// topView에 블록이 없으면 해당 칸의 높이는 0
+
+grid[r][c] = 0;
+
+backtrack(nextR, nextC, grid);
+
+} else {
+
+// topView에 블록이 있으면 높이는 1 이상
+
+// 해당 열의 frontView[c] 높이를 넘을 수 없음
+
+const maxH = frontView[c];
+
+for (let h = 1; h <= maxH; h++) {
+
+// (선택 사항: 재귀 중간에 더 빠르게 가지치기)
+
+// 현재 r, c 위치에 h 높이를 놓았을 때,
+
+// 현재까지 채워진 행 (r)의 최대 높이가 topViewHasBlockInRow[r]와 모순되지 않는지
+
+// 그리고 현재까지 채워진 열 (c)의 최대 높이가 frontView[c]와 모순되지 않는지
+
+// 이 단계에서 검사하면 더 빠를 수 있으나, 복잡도가 증가하고 최종 검사로 충분할 수 있음.
+
+// 여기서는 최종 검사에 집중하여 코드 간결성 유지.
+
+
+
+grid[r][c] = h;
+
+backtrack(nextR, nextC, grid);
+
+}
+
+}
+
+}
+
+
+
+const grid = Array(size).fill(0).map(() => Array(size).fill(0));
+
+backtrack(0, 0, grid);
+
+
+
+// 로그 추가: 총 몇 개의 유효한 배치가 발견되었는지
+
+console.log('총 유효한 배치 개수:', possibleConfigs.length);
+
+
+
+const sideViewMap = new Map();
+
+for (const config of possibleConfigs) {
+
+const key = JSON.stringify(config.sideView);
+
+if (!sideViewMap.has(key)) {
+
+sideViewMap.set(key, {
+
+sideView: config.sideView,
+
+totals: []
+
+});
+
+}
+
+sideViewMap.get(key).totals.push(config.total);
+
+}
+
+
+
+const results = [];
+
+for (const [key, data] of sideViewMap) {
+
+results.push({
+
+sideView: data.sideView,
+
+minBlocks: Math.min(...data.totals),
+
+maxBlocks: Math.max(...data.totals)
+
+});
+
+// 로그 추가: 각 sideView별 최소/최대
+
+console.log('sideView:', data.sideView, 'min:', Math.min(...data.totals), 'max:', Math.max(...data.totals));
+
+}
+
+
+
+return results;
+
+}
+
+
+
+function startGame() {
+
+document.body.className = `flex items-center justify-center min-h-screen bg-${currentDifficulty}`;
+
+
+
+// 로딩 화면 표시
+
+switchScreen('loading');
+
+
+
+// 비동기로 문제 생성 (UI 블로킹 방지)
+
+setTimeout(() => {
+
+shuffledProblems = [];
+
+const questionTypes = ['total', 'total', 'total', 'max', 'min', 'min', 'min', 'min', 'max', 'max'];
+
+
+
+// 셔플
+
+for (let i = questionTypes.length - 1; i > 0; i--) {
+
+const j = Math.floor(Math.random() * (i + 1));
+
+[questionTypes[i], questionTypes[j]] = [questionTypes[j], questionTypes[i]];
+
+}
+
+
+
+for (let i = 0; i < 10; i++) {
+
+const problem = generateProblemByDifficulty(currentDifficulty);
+
+
+
+shuffledProblems.push({
+
+topView: problem.topView,
+
+frontView: problem.frontView,
+
+sideView: problem.sideView,
+
+minBlocks: problem.minBlocks,
+
+maxBlocks: problem.maxBlocks,
+
+type: questionTypes[i]
+
+});
+
+}
+
+
+
+currentProblemIndex = 0;
+
+totalScore = 0;
+
+loadQuestion();
+
+switchScreen('game');
+
+}, 100);
+
+}
+
+
+
+function loadQuestion() {
+
+answerInput.value = '';
+
+answerInput.disabled = false;
+
+submitBtn.disabled = false;
+
+submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+isSubmitted = false;
+
+answerInput.focus();
+
+
+
+nextQuestionInGameBtn.classList.add('hidden');
+
+
+
+const problem = shuffledProblems[currentProblemIndex];
+
+console.log('topView:', problem.topView);
+
+console.log('frontView:', problem.frontView);
+
+console.log('sideView:', problem.sideView);
+
+console.log('min:', problem.minBlocks, 'max:', problem.maxBlocks);
+
+questionCounter.textContent = `문제 ${currentProblemIndex + 1} / 10`;
+
+
+
+const questionTextEl = document.querySelector('#game-screen .text-center p.text-xl');
+
+if (problem.type === 'min') {
+
+questionTextEl.textContent = '쌓기나무는 최소 몇 개일까요?';
+
+} else if (problem.type === 'max') {
+
+questionTextEl.textContent = '쌓기나무는 최대 몇 개일까요?';
+
+} else {
+
+questionTextEl.textContent = '쌓기나무는 총 몇 개일까요?';
+
+}
+
+
+
+// ✨ requestAnimationFrame 추가
+
+requestAnimationFrame(() => {
+
+renderTopView(viewContainers.top, problem.topView);
+
+renderFrontView(viewContainers.front, problem.frontView);
+
+renderRightSideView(viewContainers.side, problem.sideView);
+
+
+
+// ✨ 캔버스 초기화 및 이벤트 등록
+
+initCanvas();
+
+if (ctx) {
+
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+
+
+canvas.removeEventListener('mousedown', startDrawing);
+
+canvas.removeEventListener('mousemove', draw);
+
+canvas.removeEventListener('mouseup', stopDrawing);
+
+canvas.removeEventListener('mouseout', stopDrawing);
+
+
+
+canvas.addEventListener('mousedown', startDrawing);
+
+canvas.addEventListener('mousemove', draw);
+
+canvas.addEventListener('mouseup', stopDrawing);
+
+canvas.addEventListener('mouseout', stopDrawing);
+
+
+
+canvas.removeEventListener('touchstart', handleTouchStart);
+
+canvas.removeEventListener('touchmove', handleTouchMove);
+
+canvas.removeEventListener('touchend', handleTouchEnd);
+
+
+
+canvas.addEventListener('touchstart', handleTouchStart);
+
+canvas.addEventListener('touchmove', handleTouchMove);
+
+canvas.addEventListener('touchend', handleTouchEnd);
+
+}
+
+
+
+// ✨ 초기 상태: 끄기 활성화
+
+drawOffBtn.classList.add('tool-active');
+
+drawBtn.classList.remove('tool-active');
+
+eraseBtn.classList.remove('tool-active');
+
+canvas.style.pointerEvents = 'none';
+
+});
+
+startTimer();
+
+}
+
+
+
+function renderGrid(container, size) {
+
+container.innerHTML = '';
+
+container.style.display = 'grid';
+
+container.style.gridTemplateRows = `repeat(${size}, 1fr)`;
+
+container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+
+container.style.gap = '4px';
+
+
+
+const cells = [];
+
+for (let i = 0; i < size * size; i++) {
+
+const cell = document.createElement('div');
+
+cell.className = 'bg-gray-200 border-2 border-gray-400';
+
+cell.style.minWidth = '20px';
+
+cell.style.minHeight = '20px';
+
+container.appendChild(cell);
+
+cells.push(cell);
+
+}
+
+return cells;
+
+}
+
+
+
+function renderTopView(container, viewData) {
+
+const size = viewData.length;
+
+const cells = renderGrid(container, size);
+
+for (let r = 0; r < size; r++) {
+
+for (let c = 0; c < size; c++) {
+
+if (viewData[r][c] === 1) {
+
+cells[r * size + c].className = 'bg-yellow-400 border-2 border-yellow-700';
+
+}
+
+}
+
+}
+
+}
+
+
+
+function renderFrontView(container, viewData) {
+
+const size = viewData.length;
+
+const cells = renderGrid(container, size);
+
+
+
+for (let c = 0; c < size; c++) {
+
+const height = viewData[c];
+
+for (let h = 0; h < height; h++) {
+
+cells[(size - 1 - h) * size + c].className = 'bg-yellow-400 border-2 border-yellow-700';
+
+}
+
+}
+
+}
+
+
+
+function renderRightSideView(container, viewData) {
+
+const size = viewData.length;
+
+const cells = renderGrid(container, size);
+
+
+
+for (let r = 0; r < size; r++) {
+
+const height = viewData[r];
+
+for (let h = 0; h < height; h++) {
+
+cells[(size - 1 - h) * size + (size - 1 - r)].className = 'bg-yellow-400 border-2 border-yellow-700';
+
+}
+
+}
+
+}
+
+
+
+function startTimer() {
+
+seconds = 0;
+
+timerEl.textContent = `${seconds}초`;
+
+clearInterval(timerInterval);
+
+timerInterval = setInterval(() => {
+
+seconds++;
+
+timerEl.textContent = `${seconds}초`;
+
+}, 1000);
+
+}
+
+
+
+function stopTimer() {
+
+clearInterval(timerInterval);
+
+}
+
+
+
+function handleSubmit() {
+
+if (isSubmitted) return; // 이미 제출했으면 무시
+
+
+
+stopTimer();
+
+isSubmitted = true;
+
+
+
+// 입력창과 버튼 모두 비활성화
+
+answerInput.disabled = true;
+
+submitBtn.disabled = true; // 추가
+
+submitBtn.classList.add('opacity-50', 'cursor-not-allowed'); // 시각적 피드백
+
+
+
+nextQuestionInGameBtn.classList.remove('hidden');
+
+
+
+const userAnswer = parseInt(answerInput.value, 10);
+
+const problem = shuffledProblems[currentProblemIndex];
+
+
+
+let isCorrect;
+
+if (problem.type === 'min') {
+
+isCorrect = userAnswer === problem.minBlocks;
+
+} else if (problem.type === 'max') {
+
+isCorrect = userAnswer === problem.maxBlocks;
+
+} else {
+
+isCorrect = !isNaN(userAnswer) &&
+
+userAnswer >= problem.minBlocks &&
+
+userAnswer <= problem.maxBlocks;
+
+}
+
+
+
+let score = 0;
+
+if (isCorrect) {
+
+score = Math.max(0, 100 - Math.floor(seconds / 2));
+
+resultEls.title.textContent = "🎉 정답입니다!";
+
+resultEls.title.className = "text-4xl font-bold text-green-600";
+
+} else {
+
+score = 0;
+
+resultEls.title.textContent = "🤔 아쉬워요, 틀렸습니다.";
+
+resultEls.title.className = "text-4xl font-bold text-red-500";
+
+}
+
+totalScore += score;
+
+
+
+resultEls.time.textContent = `${seconds}초`;
+
+resultEls.score.textContent = `${score}점`;
+
+resultEls.myAnswer.textContent = isNaN(userAnswer) ? "입력 안 함" : `${userAnswer}개`;
+
+if (problem.type === 'min') {
+
+resultEls.correctRange.textContent = `최소: ${problem.minBlocks}개`;
+
+resultEls.rangeExplanation.textContent = `이 문제의 최소 개수는 ${problem.minBlocks}개입니다. (최대는 ${problem.maxBlocks}개)`;
+
+} else if (problem.type === 'max') {
+
+resultEls.correctRange.textContent = `최대: ${problem.maxBlocks}개`;
+
+resultEls.rangeExplanation.textContent = `이 문제의 최대 개수는 ${problem.maxBlocks}개입니다. (최소는 ${problem.minBlocks}개)`;
+
+} else {
+
+resultEls.correctRange.textContent = `${problem.minBlocks}개 ~ ${problem.maxBlocks}개`;
+
+if (problem.minBlocks === problem.maxBlocks) {
+
+resultEls.rangeExplanation.textContent = `이 문제는 정확히 ${problem.minBlocks}개만 가능합니다!`;
+
+} else {
+
+resultEls.rangeExplanation.textContent = `여러 가지 배치가 가능해서 ${problem.minBlocks}~${problem.maxBlocks}개 사이 모두 정답입니다!`;
+
+}
+
+}
+
+
+
+if (currentProblemIndex === 9) {
+
+nextBtn.textContent = '최종 결과 보기'; // result-screen의 next-btn
+
+nextQuestionInGameBtn.textContent = '최종 결과 보기'; // game-screen의 next-question-in-game-btn
+
+} else {
+
+nextBtn.textContent = '다음 문제'; // result-screen의 next-btn
+
+nextQuestionInGameBtn.textContent = '다음 문제'; // game-screen의 next-question-in-game-btn
+
+}
+
+
+
+switchScreen('result');
+
+}
+
+
+
+function handleNext() {
+
+// ✨ 이 줄 추가
+
+if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+
+
+currentProblemIndex++;
+
+if (currentProblemIndex < 10) {
+
+loadQuestion();
+
+switchScreen('game');
+
+} else {
+
+showFinalScore();
+
+}
+
+}
+
+
+
+function showFinalScore() {
+
+finalScoreEl.textContent = `${totalScore}점`;
+
+switchScreen('final');
+
+}
+
+
+
+// 이벤트 리스너
+
+difficultyBtns.forEach(btn => {
+
+btn.addEventListener('click', (e) => {
+
+currentDifficulty = e.target.dataset.difficulty;
+
+startGame();
+
+});
+
+});
+
+
+
+submitBtn.addEventListener('click', handleSubmit);
+
+
+
+answerInput.addEventListener('keydown', (e) => {
+
+if (e.key === 'Enter') {
+
+handleSubmit();
+
+}
+
+});
+
+
+
+nextBtn.addEventListener('click', handleNext);
+
+
+
+restartBtn.addEventListener('click', () => {
+
+document.body.className = `bg-gray-100 flex items-center justify-center min-h-screen`;
+
+switchScreen('start');
+
+});
+
+
+
+// 홈 버튼 이벤트
+
+homeBtns.forEach(btn => {
+
+btn.addEventListener('click', () => {
+
+if (confirm('홈으로 돌아가면 현재 게임 진행이 초기화됩니다. 계속하시겠습니까?')) {
+
+stopTimer();
+
+document.body.className = `bg-gray-100 flex items-center justify-center min-h-screen`;
+
+switchScreen('start');
+
+}
+
+});
+
+});
+
+
+
+// 문제 보기 버튼 이벤트
+
+backToQuestionBtn.addEventListener('click', () => {
+
+// 이미 제출된 상태이므로 nextQuestionInGameBtn을 보여준다.
+
+// nextQuestionInGameBtn.classList.remove('hidden'); // 이미 handleSubmit에서 처리됨
+
+switchScreen('game');
+
+});
+
+
+
+nextQuestionInGameBtn.addEventListener('click', handleNext); // 기존 handleNext 함수 재활용
+
+
+
+function initCanvas() {
+
+canvas = document.getElementById('draw-canvas');
+
+if (!canvas) return;
+
+
+
+ctx = canvas.getContext('2d');
+
+const container = document.getElementById('game-screen');
+
+canvas.width = container.offsetWidth;
+
+canvas.height = container.offsetHeight;
+
+
+
+ctx.lineWidth = 3;
+
+ctx.lineCap = 'round';
+
+ctx.strokeStyle = '#FF0000';
+
+}
+
+
+
+function startDrawing(e) {
+
+const rect = canvas.getBoundingClientRect();
+
+const x = e.clientX - rect.left;
+
+const y = e.clientY - rect.top;
+
+
+
+// ✨ 상단 버튼 영역(약 100px)에서는 그리기 차단
+
+if (y < 100) {
+
+return;
+
+}
+
+
+
+isDrawing = true;
+
+ctx.beginPath();
+
+ctx.moveTo(x, y);
+
+}
+
+
+
+function draw(e) {
+
+if (!isDrawing) return;
+
+
+
+const rect = canvas.getBoundingClientRect();
+
+const x = e.clientX - rect.left;
+
+const y = e.clientY - rect.top;
+
+
+
+// ✨ 버튼 영역에서는 그리기 차단
+
+if (y < 100) {
+
+stopDrawing();
+
+return;
+
+}
+
+
+
+ctx.lineTo(x, y);
+
+ctx.stroke();
+
+}
+
+function stopDrawing() {
+
+isDrawing = false;
+
+}
+
+
+
+function handleTouchStart(e) {
+
+e.preventDefault();
+
+const touch = e.touches[0];
+
+const mouseEvent = new MouseEvent('mousedown', {
+
+clientX: touch.clientX,
+
+clientY: touch.clientY
+
+});
+
+canvas.dispatchEvent(mouseEvent);
+
+
+
+// 지우개 표시 업데이트
+
+if (drawMode === 'erase') {
+
+const size = ctx.lineWidth;
+
+eraserIndicator.style.width = size + 'px';
+
+eraserIndicator.style.height = size + 'px';
+
+eraserIndicator.style.left = touch.clientX + 'px';
+
+eraserIndicator.style.top = touch.clientY + 'px';
+
+eraserIndicator.style.display = 'block';
+
+}
+
+}
+
+
+
+function handleTouchMove(e) {
+
+e.preventDefault();
+
+const touch = e.touches[0];
+
+const mouseEvent = new MouseEvent('mousemove', {
+
+clientX: touch.clientX,
+
+clientY: touch.clientY
+
+});
+
+canvas.dispatchEvent(mouseEvent);
+
+
+
+// 지우개 표시 업데이트
+
+if (drawMode === 'erase') {
+
+const size = ctx.lineWidth;
+
+eraserIndicator.style.width = size + 'px';
+
+eraserIndicator.style.height = size + 'px';
+
+eraserIndicator.style.left = touch.clientX + 'px';
+
+eraserIndicator.style.top = touch.clientY + 'px';
+
+}
+
+}
+
+
+
+function handleTouchEnd(e) {
+
+e.preventDefault();
+
+const mouseEvent = new MouseEvent('mouseup', {});
+
+canvas.dispatchEvent(mouseEvent);
+
+
+
+// 지우개 숨기기
+
+if (drawMode === 'erase') {
+
+eraserIndicator.style.display = 'none';
+
+}
+
+}
+
+
+
+// 버튼 이벤트
+
+const drawBtn = document.getElementById('draw-btn');
+
+const drawOffBtn = document.getElementById('draw-off-btn');
+
+const eraseBtn = document.getElementById('erase-btn');
+
+const clearBtn = document.getElementById('clear-btn');
+
+const eraserIndicator = document.getElementById('eraser-indicator');
+
+
+
+// ✨ 쓰기 버튼
+
+drawBtn.addEventListener('click', () => {
+
+drawMode = 'draw';
+
+canvas.style.pointerEvents = 'auto';
+
+canvas.classList.remove('eraser-cursor');
+
+eraserIndicator.style.display = 'none';
+
+drawBtn.classList.add('tool-active');
+
+drawOffBtn.classList.remove('tool-active');
+
+eraseBtn.classList.remove('tool-active');
+
+ctx.strokeStyle = '#FF0000';
+
+ctx.lineWidth = 3;
+
+ctx.globalCompositeOperation = 'source-over';
+
+});
+
+
+
+// ✨ 끄기 버튼
+
+drawOffBtn.addEventListener('click', () => {
+
+canvas.style.pointerEvents = 'none';
+
+canvas.classList.remove('eraser-cursor');
+
+eraserIndicator.style.display = 'none';
+
+drawOffBtn.classList.add('tool-active');
+
+drawBtn.classList.remove('tool-active');
+
+eraseBtn.classList.remove('tool-active');
+
+});
+
+
+
+// ✨ 지우개 버튼
+
+eraseBtn.addEventListener('click', () => {
+
+drawMode = 'erase';
+
+canvas.style.pointerEvents = 'auto';
+
+canvas.classList.add('eraser-cursor');
+
+eraseBtn.classList.add('tool-active');
+
+drawBtn.classList.remove('tool-active');
+
+drawOffBtn.classList.remove('tool-active');
+
+ctx.strokeStyle = '#FFFFFF';
+
+ctx.lineWidth = 20;
+
+ctx.globalCompositeOperation = 'destination-out';
+
+});
+
+
+
+// ✨ 초기화 버튼
+
+clearBtn.addEventListener('click', () => {
+
+if (confirm('메모를 모두 지울까요?')) {
+
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+}
+
+});
+
+
+
+// ✨ 지우개 표시 업데이트
+
+document.addEventListener('mousemove', (e) => {
+
+if (drawMode === 'erase' && canvas.style.pointerEvents === 'auto') {
+
+eraserIndicator.style.display = 'block';
+
+
+
+const size = ctx.lineWidth;
+
+eraserIndicator.style.width = size + 'px';
+
+eraserIndicator.style.height = size + 'px';
+
+eraserIndicator.style.left = e.clientX + 'px';
+
+eraserIndicator.style.top = e.clientY + 'px';
+
+} else if (drawMode !== 'erase') {
+
+eraserIndicator.style.display = 'none'; // ✨ 지우개 모드 아니면 숨기기
+
+}
+
+});
+
+
+
+
+
+
+
+// 초기 화면 표시
+
+switchScreen('start');
+
+</script>
+
 </body>
+
+
+
 </html>
+
+
+To top
+
